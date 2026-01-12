@@ -86,3 +86,45 @@ export const deletePost = async (req, res) => {
       });
     }
   };
+
+  export const getPostById = async (req, res) => {
+    try {
+      const post = await Post.findOne({ _id: req.params.id, isDeleted: false });
+      if (!post) {
+        return res.status(404).json({ success: false, message: "Post not found" });
+      }
+  
+      if (post.author.toString() !== req.user.id) {
+        return res.status(403).json({ success: false, message: "Unauthorized" });
+      }
+  
+      res.status(200).json({ success: true, post });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({ success: false, message: "Failed to fetch post" });
+    }
+  };
+  
+  export const updatePost = async (req, res) => {
+    try {
+      const post = await Post.findById(req.params.id);
+      if (!post || post.isDeleted) {
+        return res.status(404).json({ success: false, message: "Post not found" });
+      }
+  
+      if (post.author.toString() !== req.user.id) {
+        return res.status(403).json({ success: false, message: "Unauthorized" });
+      }
+  
+      post.title = req.body.title || post.title;
+      post.content = req.body.content || post.content;
+      post.updatedAt = Date.now();
+  
+      await post.save();
+  
+      res.status(200).json({ success: true, post });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({ success: false, message: "Failed to update post" });
+    }
+  };
