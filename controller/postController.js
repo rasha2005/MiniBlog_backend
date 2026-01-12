@@ -53,3 +53,36 @@ export const getMyPosts = async (req, res) => {
     });
   }
 };
+
+export const deletePost = async (req, res) => {
+    try {
+      const postId = req.params.id;
+      const userId = req.user.id;
+  
+      const post = await Post.findOne({
+        _id: postId,
+        author: userId,
+        isDeleted: false,
+      });
+  
+      if (!post) {
+        return res.status(404).json({
+          success: false,
+          message: "Post not found or unauthorized",
+        });
+      }
+  
+      post.isDeleted = true;
+      await post.save();
+  
+      res.status(200).json({
+        success: true,
+        message: "Post deleted successfully",
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: "Failed to delete post",
+      });
+    }
+  };
